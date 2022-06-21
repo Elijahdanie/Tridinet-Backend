@@ -1,0 +1,7 @@
+FROM node:8.11.1-alpine
+
+COPY ./dist/ /usr/tridinet/api
+
+RUN npm install
+
+RUN node /usr/tridinet/api/dist/index.js
