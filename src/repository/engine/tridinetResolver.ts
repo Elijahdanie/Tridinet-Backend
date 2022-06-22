@@ -16,4 +16,10 @@ export default class TridinetResolver {
             name
         }
     }
+
+
+    static async resolveWord(data)
+    {
+        //check all assets and verify ownership
+    }
 }

@@ -24,8 +24,9 @@ let MarketController = class MarketController {
     constructor() {
         this._marketRepository = new marketRepository_1.default();
     }
-    async createItem(user, payload, res) {
+    async createItem(file, user, payload, res) {
         try {
+            console.log(file);
             if (!user) {
                 return res.status(401).json({ success: false, message: "Unauthorized" });
             }
@@ -41,7 +42,7 @@ let MarketController = class MarketController {
                 previewUrl,
                 cost,
                 userId: user.id
-            });
+            }, file);
             return res.status(200).json({ success: true, data: item });
         }
         catch (error) {
@@ -135,11 +136,12 @@ let MarketController = class MarketController {
 };
 __decorate([
     (0, routing_controllers_1.Post)('/create'),
-    __param(0, (0, routing_controllers_1.CurrentUser)()),
-    __param(1, (0, routing_controllers_1.Body)()),
-    __param(2, (0, routing_controllers_1.Res)()),
+    __param(0, (0, routing_controllers_1.UploadedFile)('file')),
+    __param(1, (0, routing_controllers_1.CurrentUser)()),
+    __param(2, (0, routing_controllers_1.Body)()),
+    __param(3, (0, routing_controllers_1.Res)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, Object, Object]),
+    __metadata("design:paramtypes", [Object, Object, Object, Object]),
     __metadata("design:returntype", Promise)
 ], MarketController.prototype, "createItem", null);
 __decorate([

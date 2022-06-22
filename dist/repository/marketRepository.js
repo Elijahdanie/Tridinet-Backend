@@ -15,6 +15,9 @@ const account_1 = __importDefault(require("../models/account"));
 const items_1 = __importDefault(require("../models/items"));
 const transactions_1 = __importDefault(require("../models/transactions"));
 const uuid_1 = require("uuid");
+const fs_1 = __importDefault(require("fs"));
+const util_1 = __importDefault(require("util"));
+const s3_1 = __importDefault(require("../utils/s3"));
 let MarketRepository = class MarketRepository {
     async buyItem(item, user) {
         try {
@@ -51,9 +54,25 @@ let MarketRepository = class MarketRepository {
             return null;
         }
     }
-    async createItem(payload) {
+    async saveFile(file, itemId) {
+        // save file from upload
+        // return file url
+        let arrbuf = new ArrayBuffer(file.buffer.length);
+        let view = new Uint8Array(arrbuf);
+        for (let i = 0; i < file.buffer.length; i++) {
+            view[i] = file.buffer[i];
+        }
+        const fileName = `${file.originalname}_${itemId}.${file.mimetype.split('/')[1]}`;
+        let filePath = `./temp/${fileName}`;
+        const writeFile = util_1.default.promisify(fs_1.default.writeFileSync);
+        await writeFile(filePath, view, 'binary');
+        const url = await (0, s3_1.default)(filePath);
+    }
+    async createItem(payload, file) {
         try {
-            const result = items_1.default.create(payload);
+            const url = await this.saveFile(file, payload.id);
+            payload.fileUrl = url;
+            const result = await items_1.default.create(payload);
             return result;
         }
         catch (error) {
