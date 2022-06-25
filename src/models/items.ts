@@ -1,4 +1,4 @@
-import { Column, ForeignKey, IsUUID, Model, PrimaryKey, Table } from "sequelize-typescript";
+import { Column, ForeignKey, IsUUID, Model, PrimaryKey, Table, Unique } from "sequelize-typescript";
 import Users from "./users";
 
 @Table({timestamps:true})
@@ -9,6 +9,7 @@ export default class Items extends Model<Items> {
     @Column
     id: string;
 
+    @Unique
     @Column
     name: string;
 

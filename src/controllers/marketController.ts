@@ -15,13 +15,14 @@ export default class MarketController {
     this._marketRepository = new MarketRepository();
   }
 
-  @Post('/upload/preview/:id')
-  async uploadPreview(@UploadedFile('file') file:any, @Param('id') id: any, @CurrentUser() user:any, @Res() res: Response) {
+  @Post('/upload/preview')
+  async uploadPreview(@UploadedFile('file') file:any, @Body() payload: any,  @CurrentUser() user:any, @Res() res: Response) {
     try{
       if(!user)
       {
         return res.status(401).json({success:false, message:"Unauthorized"})
       }
+      const id = payload.id;
       const validateItem = await this._marketRepository.savePreview(id, user.id, file);
       if(!validateItem)
       {
@@ -43,9 +44,9 @@ export default class MarketController {
       {
         return res.status(401).json({success:false, message:"Unauthorized"})
       }
-      const {name, description, fileUrl, previewUrl, cost } = payload;
+      const {name, description, cost } = payload;
       
-      if(!name || !description || !fileUrl || !previewUrl || !cost)
+      if(!name || !description || !cost)
       {
         return res.status(400).send("Missing required fields");
       }
@@ -54,8 +55,6 @@ export default class MarketController {
         id: uuid(),
         name,
         description,
-        fileUrl,
-        previewUrl,
         cost,
         userId: user.id
       }, file, user);
@@ -83,11 +82,30 @@ export default class MarketController {
     }
   }
 
+  @Get('/preview/:id')
+  async previewItem(@Param('id') id: string, @Res() res: Response) {
+    try{
+      const item = await this._marketRepository.fetchItem(id);
+      res.setHeader('Content-Disposition', `filename=${item.fileUrl}.png`);
+      res.setHeader('Content-Type', 'image/png');
+      return new Promise<Response>((resolve, reject) => {
+        const readable = downLoadFile(item.previewUrl);
+        readable.pipe(res);
+        readable.on('end', () => resolve(res));
+        readable.on('error', (error) => reject(error));
+      });
+    }
+    catch(error){
+      console.log(error);
+      return res.status(500).json({success: false, message: "Unable to process"});
+    }
+  }
+
+
   @Get('/item/:id')
   async fetchItem(@Param('id') id: string, @Res() res: Response) {
     try{
       const item = await this._marketRepository.fetchItem(id);
-      console.log(item)
       res.setHeader('Content-Disposition', `filename=${item.fileUrl}.png`);
       res.setHeader('Content-Type', 'image/png');
       return new Promise<Response>((resolve, reject) => {
@@ -204,5 +222,4 @@ export default class MarketController {
       return res.status(500).json({success: false, message: "Unable to process"});
     }
   }
-
 }

@@ -1,5 +1,4 @@
 import { createServer } from "http";
-import {Sequelize} from 'sequelize-typescript'
 import Users from "./models/users";
 import Worlds from "./models/worlds";
 import { createExpressServer, useContainer, Action } from "routing-controllers";

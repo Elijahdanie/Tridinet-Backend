@@ -23,6 +23,7 @@ __decorate([
     __metadata("design:type", String)
 ], Items.prototype, "id", void 0);
 __decorate([
+    sequelize_typescript_1.Unique,
     sequelize_typescript_1.Column,
     __metadata("design:type", String)
 ], Items.prototype, "name", void 0);
