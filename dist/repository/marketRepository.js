@@ -14,11 +14,26 @@ const typedi_1 = require("typedi");
 const account_1 = __importDefault(require("../models/account"));
 const items_1 = __importDefault(require("../models/items"));
 const transactions_1 = __importDefault(require("../models/transactions"));
+const users_1 = __importDefault(require("../models/users"));
 const uuid_1 = require("uuid");
 const fs_1 = __importDefault(require("fs"));
-const util_1 = __importDefault(require("util"));
-const s3_1 = __importDefault(require("../utils/s3"));
+const s3_1 = require("../utils/s3");
 let MarketRepository = class MarketRepository {
+    async savePreview(Itemid, userid, file) {
+        try {
+            const item = await items_1.default.findByPk(Itemid);
+            if (item.userId === userid) {
+                const key = await this.uploadS3(file, Itemid);
+                await item.update({ previewUrl: key });
+                return true;
+            }
+            return false;
+        }
+        catch (error) {
+            console.log(error);
+            return false;
+        }
+    }
     async buyItem(item, user) {
         try {
             const account = await account_1.default.findOne({ where: { userId: user.id } });
@@ -31,9 +46,9 @@ let MarketRepository = class MarketRepository {
                     itemId: item.id,
                     cost: item.cost,
                 });
-                let purchasedItems = user.purchasedItems ? user.purchasedItems : [];
+                let purchasedItems = user.purchasedItems;
                 purchasedItems.push(item.id);
-                const data = await user.update({ purchasedItems });
+                const data = await (await users_1.default.findByPk(user.id)).update({ purchasedItems: purchasedItems });
                 return data;
             }
             else {
@@ -54,7 +69,7 @@ let MarketRepository = class MarketRepository {
             return null;
         }
     }
-    async saveFile(file, itemId) {
+    async uploadS3(file, itemId) {
         // save file from upload
         // return file url
         let arrbuf = new ArrayBuffer(file.buffer.length);
@@ -62,16 +77,26 @@ let MarketRepository = class MarketRepository {
         for (let i = 0; i < file.buffer.length; i++) {
             view[i] = file.buffer[i];
         }
-        const fileName = `${file.originalname}_${itemId}.${file.mimetype.split('/')[1]}`;
+        const fileName = `${itemId}`;
         let filePath = `./temp/${fileName}`;
-        const writeFile = util_1.default.promisify(fs_1.default.writeFileSync);
-        await writeFile(filePath, view, 'binary');
-        const url = await (0, s3_1.default)(filePath);
+        //const writeFile = util.promisify(fs.writeFileSync);
+        //const unlink = util.promisify(fs.unlinkSync);
+        await fs_1.default.writeFileSync(filePath, view, 'binary');
+        const SendData = await (0, s3_1.uploadFile)(filePath, fileName);
+        console.log(SendData);
+        fs_1.default.unlinkSync(filePath);
+        return SendData.Key;
+        //return `http://localhost:3000/marlet/download/${fileName}`;
     }
-    async createItem(payload, file) {
+    async createItem(payload, file, user) {
         try {
-            const url = await this.saveFile(file, payload.id);
+            const url = await this.uploadS3(file, payload.id);
             payload.fileUrl = url;
+            console.log(payload);
+            user.purchasedItems = user.purchasedItems ? user.purchasedItems : [];
+            let pitems = user.purchasedItems;
+            pitems.push(payload.id);
+            await user.update({ purchasedItems: pitems });
             const result = await items_1.default.create(payload);
             return result;
         }
@@ -98,14 +123,24 @@ let MarketRepository = class MarketRepository {
             return null;
         }
     }
-    async deleteItem(id) {
+    async deleteItem(id, user) {
         try {
-            await (await items_1.default.findByPk(id)).destroy();
-            return true;
+            const item = await (await items_1.default.findByPk(id));
+            if (transactions_1.default.findOne({ where: { itemId: id } })) {
+                return { message: "Item is in use" };
+            }
+            if (item.userId === user.id) {
+                await (0, s3_1.deleteFile)(item.fileUrl);
+                await item.destroy();
+                return { messagge: "Item deleted" };
+            }
+            else {
+                return { message: "You are not authorized to delete this item" };
+            }
         }
         catch (error) {
             console.log(error);
-            return false;
+            return { message: "Error deleting item" };
         }
     }
 };

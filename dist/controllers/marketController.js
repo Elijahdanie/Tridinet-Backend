@@ -20,13 +20,29 @@ const typedi_1 = require("typedi");
 const uuid_1 = require("uuid");
 const users_1 = __importDefault(require("../models/users"));
 const marketRepository_1 = __importDefault(require("../repository/marketRepository"));
+const s3_1 = require("../utils/s3");
 let MarketController = class MarketController {
     constructor() {
         this._marketRepository = new marketRepository_1.default();
     }
+    async uploadPreview(file, id, user, res) {
+        try {
+            if (!user) {
+                return res.status(401).json({ success: false, message: "Unauthorized" });
+            }
+            const validateItem = await this._marketRepository.savePreview(id, user.id, file);
+            if (!validateItem) {
+                return res.status(401).json({ success: false, message: "Unauthorized" });
+            }
+            return res.status(200).json({ success: true, message: "Preview uploaded" });
+        }
+        catch (error) {
+            console.log(error);
+            return res.status(500).json({ success: false, message: "Internal server error" });
+        }
+    }
     async createItem(file, user, payload, res) {
         try {
-            console.log(file);
             if (!user) {
                 return res.status(401).json({ success: false, message: "Unauthorized" });
             }
@@ -42,8 +58,39 @@ let MarketController = class MarketController {
                 previewUrl,
                 cost,
                 userId: user.id
-            }, file);
+            }, file, user);
             return res.status(200).json({ success: true, data: item });
+        }
+        catch (error) {
+            console.log(error);
+            return res.status(500).json({ success: false, message: "Unable to process" });
+        }
+    }
+    async deleteItem(user, id, res) {
+        try {
+            if (!user) {
+                return res.status(401).json({ success: false, message: "Unauthorized" });
+            }
+            const item = await this._marketRepository.deleteItem(id, user);
+            return res.status(200).json({ success: true, message: item.message, data: !!item });
+        }
+        catch (error) {
+            console.log(error);
+            return res.status(500).json({ success: false, message: "Unable to process" });
+        }
+    }
+    async fetchItem(id, res) {
+        try {
+            const item = await this._marketRepository.fetchItem(id);
+            console.log(item);
+            res.setHeader('Content-Disposition', `filename=${item.fileUrl}.png`);
+            res.setHeader('Content-Type', 'image/png');
+            return new Promise((resolve, reject) => {
+                const readable = (0, s3_1.downLoadFile)(item.fileUrl);
+                readable.pipe(res);
+                readable.on('end', () => resolve(res));
+                readable.on('error', (error) => reject(error));
+            });
         }
         catch (error) {
             console.log(error);
@@ -104,6 +151,8 @@ let MarketController = class MarketController {
             if (!item) {
                 return res.status(404).send("Item not found");
             }
+            console.log(user.purchasedItems.includes(item.id));
+            console.log(user.purchasedItems);
             const check = user.purchasedItems !== null ? user.purchasedItems.includes(item.id) : false;
             // if(item.userId === user.id || check)
             if (check) {
@@ -135,6 +184,16 @@ let MarketController = class MarketController {
     }
 };
 __decorate([
+    (0, routing_controllers_1.Post)('/upload/preview/:id'),
+    __param(0, (0, routing_controllers_1.UploadedFile)('file')),
+    __param(1, (0, routing_controllers_1.Param)('id')),
+    __param(2, (0, routing_controllers_1.CurrentUser)()),
+    __param(3, (0, routing_controllers_1.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object, Object, Object]),
+    __metadata("design:returntype", Promise)
+], MarketController.prototype, "uploadPreview", null);
+__decorate([
     (0, routing_controllers_1.Post)('/create'),
     __param(0, (0, routing_controllers_1.UploadedFile)('file')),
     __param(1, (0, routing_controllers_1.CurrentUser)()),
@@ -144,6 +203,23 @@ __decorate([
     __metadata("design:paramtypes", [Object, Object, Object, Object]),
     __metadata("design:returntype", Promise)
 ], MarketController.prototype, "createItem", null);
+__decorate([
+    (0, routing_controllers_1.Delete)('/item/:id'),
+    __param(0, (0, routing_controllers_1.CurrentUser)()),
+    __param(1, (0, routing_controllers_1.Param)('id')),
+    __param(2, (0, routing_controllers_1.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [users_1.default, String, Object]),
+    __metadata("design:returntype", Promise)
+], MarketController.prototype, "deleteItem", null);
+__decorate([
+    (0, routing_controllers_1.Get)('/item/:id'),
+    __param(0, (0, routing_controllers_1.Param)('id')),
+    __param(1, (0, routing_controllers_1.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], MarketController.prototype, "fetchItem", null);
 __decorate([
     (0, routing_controllers_1.Post)('/update'),
     __param(0, (0, routing_controllers_1.CurrentUser)()),
