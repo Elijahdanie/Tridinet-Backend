@@ -25,11 +25,12 @@ let MarketController = class MarketController {
     constructor() {
         this._marketRepository = new marketRepository_1.default();
     }
-    async uploadPreview(file, id, user, res) {
+    async uploadPreview(file, payload, user, res) {
         try {
             if (!user) {
                 return res.status(401).json({ success: false, message: "Unauthorized" });
             }
+            const id = payload.id;
             const validateItem = await this._marketRepository.savePreview(id, user.id, file);
             if (!validateItem) {
                 return res.status(401).json({ success: false, message: "Unauthorized" });
@@ -46,16 +47,14 @@ let MarketController = class MarketController {
             if (!user) {
                 return res.status(401).json({ success: false, message: "Unauthorized" });
             }
-            const { name, description, fileUrl, previewUrl, cost } = payload;
-            if (!name || !description || !fileUrl || !previewUrl || !cost) {
+            const { name, description, cost } = payload;
+            if (!name || !description || !cost) {
                 return res.status(400).send("Missing required fields");
             }
             const item = await this._marketRepository.createItem({
                 id: (0, uuid_1.v4)(),
                 name,
                 description,
-                fileUrl,
-                previewUrl,
                 cost,
                 userId: user.id
             }, file, user);
@@ -79,10 +78,26 @@ let MarketController = class MarketController {
             return res.status(500).json({ success: false, message: "Unable to process" });
         }
     }
+    async previewItem(id, res) {
+        try {
+            const item = await this._marketRepository.fetchItem(id);
+            res.setHeader('Content-Disposition', `filename=${item.fileUrl}.png`);
+            res.setHeader('Content-Type', 'image/png');
+            return new Promise((resolve, reject) => {
+                const readable = (0, s3_1.downLoadFile)(item.previewUrl);
+                readable.pipe(res);
+                readable.on('end', () => resolve(res));
+                readable.on('error', (error) => reject(error));
+            });
+        }
+        catch (error) {
+            console.log(error);
+            return res.status(500).json({ success: false, message: "Unable to process" });
+        }
+    }
     async fetchItem(id, res) {
         try {
             const item = await this._marketRepository.fetchItem(id);
-            console.log(item);
             res.setHeader('Content-Disposition', `filename=${item.fileUrl}.png`);
             res.setHeader('Content-Type', 'image/png');
             return new Promise((resolve, reject) => {
@@ -184,9 +199,9 @@ let MarketController = class MarketController {
     }
 };
 __decorate([
-    (0, routing_controllers_1.Post)('/upload/preview/:id'),
+    (0, routing_controllers_1.Post)('/upload/preview'),
     __param(0, (0, routing_controllers_1.UploadedFile)('file')),
-    __param(1, (0, routing_controllers_1.Param)('id')),
+    __param(1, (0, routing_controllers_1.Body)()),
     __param(2, (0, routing_controllers_1.CurrentUser)()),
     __param(3, (0, routing_controllers_1.Res)()),
     __metadata("design:type", Function),
@@ -212,6 +227,14 @@ __decorate([
     __metadata("design:paramtypes", [users_1.default, String, Object]),
     __metadata("design:returntype", Promise)
 ], MarketController.prototype, "deleteItem", null);
+__decorate([
+    (0, routing_controllers_1.Get)('/preview/:id'),
+    __param(0, (0, routing_controllers_1.Param)('id')),
+    __param(1, (0, routing_controllers_1.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], MarketController.prototype, "previewItem", null);
 __decorate([
     (0, routing_controllers_1.Get)('/item/:id'),
     __param(0, (0, routing_controllers_1.Param)('id')),

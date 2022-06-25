@@ -53,7 +53,7 @@ let UserController = class UserController {
             if (!user) {
                 return res.status(400).send('Invalid credentials');
             }
-            return res.status(200).json({ success: true, data: { user, token } });
+            return res.status(200).json({ success: true, data: token });
         }
         catch (error) {
             console.log(error);

@@ -23,7 +23,7 @@ let MarketRepository = class MarketRepository {
         try {
             const item = await items_1.default.findByPk(Itemid);
             if (item.userId === userid) {
-                const key = await this.uploadS3(file, Itemid);
+                const key = await this.uploadS3(file, Itemid + '_preview');
                 await item.update({ previewUrl: key });
                 return true;
             }
@@ -83,7 +83,6 @@ let MarketRepository = class MarketRepository {
         //const unlink = util.promisify(fs.unlinkSync);
         await fs_1.default.writeFileSync(filePath, view, 'binary');
         const SendData = await (0, s3_1.uploadFile)(filePath, fileName);
-        console.log(SendData);
         fs_1.default.unlinkSync(filePath);
         return SendData.Key;
         //return `http://localhost:3000/marlet/download/${fileName}`;
