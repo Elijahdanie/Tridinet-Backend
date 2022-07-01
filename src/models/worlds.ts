@@ -26,7 +26,7 @@ export default class Worlds extends Model<Worlds> {
     @Column
     url: string;
 
-    @Column(DataType.JSON)
+    @Column
     type: string;
 
     @ForeignKey(()=>Users)

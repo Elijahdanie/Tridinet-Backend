@@ -4,7 +4,7 @@ import Worlds from "./models/worlds";
 import { createExpressServer, useContainer, Action } from "routing-controllers";
 import Container from "typedi";
 import Auth from './utils/auth';
-import Items from "./models/items";
+import Items from "./models/Repository";
 import Account from "./models/account";
 import Transactions from "./models/transactions";
 import sequelize from "./utils/config";

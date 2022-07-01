@@ -44,7 +44,7 @@ __decorate([
     __metadata("design:type", String)
 ], Worlds.prototype, "url", void 0);
 __decorate([
-    (0, sequelize_typescript_1.Column)(sequelize_typescript_1.DataType.JSON),
+    sequelize_typescript_1.Column,
     __metadata("design:type", String)
 ], Worlds.prototype, "type", void 0);
 __decorate([

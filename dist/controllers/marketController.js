@@ -81,7 +81,7 @@ let MarketController = class MarketController {
     async previewItem(id, res) {
         try {
             const item = await this._marketRepository.fetchItem(id);
-            res.setHeader('Content-Disposition', `filename=${item.fileUrl}.png`);
+            res.setHeader('Content-Disposition', `filename=${item.previewUrl}.png`);
             res.setHeader('Content-Type', 'image/png');
             return new Promise((resolve, reject) => {
                 const readable = (0, s3_1.downLoadFile)(item.previewUrl);
@@ -98,10 +98,10 @@ let MarketController = class MarketController {
     async fetchItem(id, res) {
         try {
             const item = await this._marketRepository.fetchItem(id);
-            res.setHeader('Content-Disposition', `filename=${item.fileUrl}.png`);
+            res.setHeader('Content-Disposition', `filename=${item.manifestUrl}.png`);
             res.setHeader('Content-Type', 'image/png');
             return new Promise((resolve, reject) => {
-                const readable = (0, s3_1.downLoadFile)(item.fileUrl);
+                const readable = (0, s3_1.downLoadFile)(item.manifestUrl);
                 readable.pipe(res);
                 readable.on('end', () => resolve(res));
                 readable.on('error', (error) => reject(error));
@@ -115,7 +115,7 @@ let MarketController = class MarketController {
     async update(user, payload, res) {
         try {
             const { id, name, description, fileUrl, previewUrl, cost } = payload;
-            if (!id || !name || !description || !fileUrl || !previewUrl || !cost) {
+            if (!id || !name || !description || !previewUrl || !cost) {
                 return res.status(400).send("Missing required fields");
             }
             const item = await this._marketRepository.fetchItem(id);
@@ -126,7 +126,6 @@ let MarketController = class MarketController {
                 id,
                 name,
                 description,
-                fileUrl,
                 previewUrl,
                 cost
             });

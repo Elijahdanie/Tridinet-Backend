@@ -9,7 +9,7 @@ const worlds_1 = __importDefault(require("./models/worlds"));
 const routing_controllers_1 = require("routing-controllers");
 const typedi_1 = __importDefault(require("typedi"));
 const auth_1 = __importDefault(require("./utils/auth"));
-const items_1 = __importDefault(require("./models/items"));
+const Repository_1 = __importDefault(require("./models/Repository"));
 const account_1 = __importDefault(require("./models/account"));
 const transactions_1 = __importDefault(require("./models/transactions"));
 const config_1 = __importDefault(require("./utils/config"));
@@ -30,7 +30,7 @@ const app = (0, routing_controllers_1.createExpressServer)({
 config_1.default.addModels([
     users_1.default,
     worlds_1.default,
-    items_1.default,
+    Repository_1.default,
     account_1.default,
     transactions_1.default
 ]);

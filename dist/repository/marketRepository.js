@@ -12,7 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const routing_controllers_1 = require("routing-controllers");
 const typedi_1 = require("typedi");
 const account_1 = __importDefault(require("../models/account"));
-const items_1 = __importDefault(require("../models/items"));
+const Repository_1 = __importDefault(require("../models/Repository"));
 const transactions_1 = __importDefault(require("../models/transactions"));
 const users_1 = __importDefault(require("../models/users"));
 const uuid_1 = require("uuid");
@@ -21,7 +21,7 @@ const s3_1 = require("../utils/s3");
 let MarketRepository = class MarketRepository {
     async savePreview(Itemid, userid, file) {
         try {
-            const item = await items_1.default.findByPk(Itemid);
+            const item = await Repository_1.default.findByPk(Itemid);
             if (item.userId === userid) {
                 const key = await this.uploadS3(file, Itemid + '_preview');
                 await item.update({ previewUrl: key });
@@ -32,6 +32,20 @@ let MarketRepository = class MarketRepository {
         catch (error) {
             console.log(error);
             return false;
+        }
+    }
+    async saveItemToRepo(Itemid, userid, file, fileid) {
+        try {
+            const item = await Repository_1.default.findByPk(Itemid);
+            if (item.userId === userid) {
+                const key = await this.uploadS3(file, Itemid + '_' + fileid);
+                return key;
+            }
+            return "";
+        }
+        catch (error) {
+            console.log(error);
+            return "";
         }
     }
     async buyItem(item, user) {
@@ -62,7 +76,7 @@ let MarketRepository = class MarketRepository {
     }
     fetchItemsFromUser(id) {
         try {
-            return items_1.default.findAll({ where: { userId: id } });
+            return Repository_1.default.findAll({ where: { userId: id } });
         }
         catch (error) {
             console.log(error);
@@ -96,7 +110,7 @@ let MarketRepository = class MarketRepository {
             let pitems = user.purchasedItems;
             pitems.push(payload.id);
             await user.update({ purchasedItems: pitems });
-            const result = await items_1.default.create(payload);
+            const result = await Repository_1.default.create(payload);
             return result;
         }
         catch (error) {
@@ -106,7 +120,7 @@ let MarketRepository = class MarketRepository {
     }
     async updateItem(payload) {
         try {
-            return (await items_1.default.findByPk(payload.id)).update(payload);
+            return (await Repository_1.default.findByPk(payload.id)).update(payload);
         }
         catch (error) {
             console.log(error);
@@ -115,7 +129,7 @@ let MarketRepository = class MarketRepository {
     }
     async fetchItem(id) {
         try {
-            return await items_1.default.findByPk(id);
+            return await Repository_1.default.findByPk(id);
         }
         catch (error) {
             console.log(error);
@@ -124,12 +138,12 @@ let MarketRepository = class MarketRepository {
     }
     async deleteItem(id, user) {
         try {
-            const item = await (await items_1.default.findByPk(id));
+            const item = await (await Repository_1.default.findByPk(id));
             if (transactions_1.default.findOne({ where: { itemId: id } })) {
                 return { message: "Item is in use" };
             }
             if (item.userId === user.id) {
-                await (0, s3_1.deleteFile)(item.fileUrl);
+                await (0, s3_1.deleteFile)(item.manifestUrl);
                 await item.destroy();
                 return { messagge: "Item deleted" };
             }

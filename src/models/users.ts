@@ -1,5 +1,5 @@
 import { Column, DataType, HasMany, IsEmail, IsUUID, Model, NotNull, PrimaryKey, Table, Unique } from "sequelize-typescript";
-import Items from "./items";
+import Items from "./Repository";
 import Worlds from "./worlds";
 
 @Table({timestamps:true})

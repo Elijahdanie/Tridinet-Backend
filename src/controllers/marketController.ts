@@ -86,7 +86,7 @@ export default class MarketController {
   async previewItem(@Param('id') id: string, @Res() res: Response) {
     try{
       const item = await this._marketRepository.fetchItem(id);
-      res.setHeader('Content-Disposition', `filename=${item.fileUrl}.png`);
+      res.setHeader('Content-Disposition', `filename=${item.previewUrl}.png`);
       res.setHeader('Content-Type', 'image/png');
       return new Promise<Response>((resolve, reject) => {
         const readable = downLoadFile(item.previewUrl);
@@ -106,10 +106,10 @@ export default class MarketController {
   async fetchItem(@Param('id') id: string, @Res() res: Response) {
     try{
       const item = await this._marketRepository.fetchItem(id);
-      res.setHeader('Content-Disposition', `filename=${item.fileUrl}.png`);
+      res.setHeader('Content-Disposition', `filename=${item.manifestUrl}.png`);
       res.setHeader('Content-Type', 'image/png');
       return new Promise<Response>((resolve, reject) => {
-        const readable = downLoadFile(item.fileUrl);
+        const readable = downLoadFile(item.manifestUrl);
         readable.pipe(res);
         readable.on('end', () => resolve(res));
         readable.on('error', (error) => reject(error));
@@ -125,7 +125,7 @@ export default class MarketController {
   async update(@CurrentUser() user:any, @Body() payload: any, @Res() res: Response) {
     try{
       const {id, name, description, fileUrl, previewUrl, cost } = payload;
-      if(!id || !name || !description || !fileUrl || !previewUrl || !cost)
+      if(!id || !name || !description || !previewUrl || !cost)
       {
         return res.status(400).send("Missing required fields");
       }
@@ -138,7 +138,6 @@ export default class MarketController {
         id,
         name,
         description,
-        fileUrl,
         previewUrl,
         cost
       });

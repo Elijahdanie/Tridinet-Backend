@@ -1,7 +1,7 @@
 import { JsonController } from "routing-controllers";
 import { Service } from "typedi";
 import Account from "../models/account";
-import Items from "../models/items";
+import Repository from "../models/Repository";
 import Transactions from "../models/transactions";
 import Users from "../models/users";
 import {v4 as uuid} from 'uuid';
@@ -14,10 +14,9 @@ import {deleteFile, uploadFile} from "../utils/s3";
 export default class MarketRepository {
     async savePreview(Itemid: any, userid: any, file:any) {
         try {
-            const item = await Items.findByPk(Itemid);
+            const item = await Repository.findByPk(Itemid);
             if(item.userId === userid)
             {
-
                 const key = await this.uploadS3(file, Itemid + '_preview');
                 await item.update({previewUrl:key});
                 return true;
@@ -28,7 +27,24 @@ export default class MarketRepository {
             return false;
         }
     }
-    async buyItem(item: Items, user: Users) {
+
+    async saveItemToRepo(Itemid: any, userid: any, file:any, fileid: string) {
+        try {
+            const item = await Repository.findByPk(Itemid);
+            if(item.userId === userid)
+            {
+
+                const key = await this.uploadS3(file, Itemid + '_' + fileid);
+                return key;
+            }
+            return "";
+        } catch (error) {
+            console.log(error);
+            return "";
+        }
+    }
+
+    async buyItem(item: Repository, user: Users) {
         try {
             const account = await Account.findOne({where:{userId:user.id}});
             if(account.oxygen > item.cost)
@@ -59,7 +75,7 @@ export default class MarketRepository {
 
     fetchItemsFromUser(id: any) {
         try {            
-            return Items.findAll({where:{userId:id}});
+            return Repository.findAll({where:{userId:id}});
         } catch (error) {
             console.log(error);
             return null;
@@ -94,7 +110,7 @@ export default class MarketRepository {
             let pitems = user.purchasedItems;
             pitems.push(payload.id);
             await user.update({purchasedItems:pitems});
-            const result = await Items.create(payload);
+            const result = await Repository.create(payload);
             return result;
         } catch (error) {
             console.log(error);
@@ -104,16 +120,16 @@ export default class MarketRepository {
 
     async updateItem(payload){
         try {
-            return (await Items.findByPk(payload.id)).update(payload);
+            return (await Repository.findByPk(payload.id)).update(payload);
         } catch (error) {
             console.log(error);
             return null;
         }
     }
 
-    async fetchItem(id): Promise<Items> {
+    async fetchItem(id): Promise<Repository> {
         try {
-            return await Items.findByPk(id);
+            return await Repository.findByPk(id);
         } catch (error) {
             console.log(error);
             return null;
@@ -122,13 +138,13 @@ export default class MarketRepository {
 
     async deleteItem(id, user): Promise<any> {
         try {
-            const item = await (await Items.findByPk(id));
+            const item = await (await Repository.findByPk(id));
             if(Transactions.findOne({where:{itemId:id}})){
                 return {message:"Item is in use"};
             }
             if(item.userId === user.id)
             {
-                await deleteFile(item.fileUrl);
+                await deleteFile(item.manifestUrl);
                 await item.destroy();
                 return {messagge:"Item deleted"};
             }else

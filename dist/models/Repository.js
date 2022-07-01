@@ -13,30 +13,47 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const sequelize_typescript_1 = require("sequelize-typescript");
-const account_1 = __importDefault(require("./account"));
-const Repository_1 = __importDefault(require("./Repository"));
-let Transactions = class Transactions extends sequelize_typescript_1.Model {
+const users_1 = __importDefault(require("./users"));
+let Repository = class Repository extends sequelize_typescript_1.Model {
 };
 __decorate([
+    (0, sequelize_typescript_1.IsUUID)(4),
     sequelize_typescript_1.PrimaryKey,
     sequelize_typescript_1.Column,
     __metadata("design:type", String)
-], Transactions.prototype, "id", void 0);
+], Repository.prototype, "id", void 0);
 __decorate([
-    (0, sequelize_typescript_1.ForeignKey)(() => account_1.default),
+    sequelize_typescript_1.Unique,
     sequelize_typescript_1.Column,
     __metadata("design:type", String)
-], Transactions.prototype, "accountId", void 0);
+], Repository.prototype, "name", void 0);
 __decorate([
-    (0, sequelize_typescript_1.ForeignKey)(() => Repository_1.default),
     sequelize_typescript_1.Column,
     __metadata("design:type", String)
-], Transactions.prototype, "itemId", void 0);
+], Repository.prototype, "description", void 0);
+__decorate([
+    sequelize_typescript_1.Column,
+    __metadata("design:type", String)
+], Repository.prototype, "previewUrl", void 0);
+__decorate([
+    sequelize_typescript_1.Column,
+    __metadata("design:type", String)
+], Repository.prototype, "manifestUrl", void 0);
 __decorate([
     sequelize_typescript_1.Column,
     __metadata("design:type", Number)
-], Transactions.prototype, "cost", void 0);
-Transactions = __decorate([
+], Repository.prototype, "cost", void 0);
+__decorate([
+    sequelize_typescript_1.Column,
+    __metadata("design:type", String)
+], Repository.prototype, "category", void 0);
+__decorate([
+    (0, sequelize_typescript_1.ForeignKey)(() => users_1.default),
+    sequelize_typescript_1.PrimaryKey,
+    sequelize_typescript_1.Column,
+    __metadata("design:type", String)
+], Repository.prototype, "userId", void 0);
+Repository = __decorate([
     (0, sequelize_typescript_1.Table)({ timestamps: true })
-], Transactions);
-exports.default = Transactions;
+], Repository);
+exports.default = Repository;

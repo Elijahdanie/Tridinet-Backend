@@ -2,7 +2,7 @@ import { Column, ForeignKey, IsUUID, Model, PrimaryKey, Table, Unique } from "se
 import Users from "./users";
 
 @Table({timestamps:true})
-export default class Items extends Model<Items> {
+export default class Repository extends Model<Repository> {
 
     @IsUUID(4)
     @PrimaryKey
@@ -20,7 +20,7 @@ export default class Items extends Model<Items> {
     previewUrl: string;
 
     @Column
-    fileUrl: string;
+    manifestUrl: string;
 
     @Column
     cost: number;
@@ -33,3 +33,4 @@ export default class Items extends Model<Items> {
     @Column
     userId: string;
 }
+
