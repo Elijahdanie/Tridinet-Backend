@@ -42,6 +42,16 @@ let RepositoryController = class RepositoryController {
             return res.status(500).json({ success: false, message: "Internal server error" });
         }
     }
+    async fetchAlRepo(page, res) {
+        try {
+            const payload = await this._marketRepository.fetchRepos(page);
+            return res.status(200).json({ success: true, message: "Preview uploaded", data: payload });
+        }
+        catch (error) {
+            console.log(error);
+            return res.status(500).json({ success: false, message: "Unable to process" });
+        }
+    }
     async DownloadItem(id, res) {
         try {
             res.setHeader('Content-Disposition', `filename=${id}.png`);
@@ -69,6 +79,14 @@ __decorate([
     __metadata("design:paramtypes", [Object, Object, Object, Object]),
     __metadata("design:returntype", Promise)
 ], RepositoryController.prototype, "uploadPreview", null);
+__decorate([
+    (0, routing_controllers_1.Get)('/:page'),
+    __param(0, (0, routing_controllers_1.Param)('page')),
+    __param(1, (0, routing_controllers_1.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, Object]),
+    __metadata("design:returntype", Promise)
+], RepositoryController.prototype, "fetchAlRepo", null);
 __decorate([
     (0, routing_controllers_1.Get)('/fetch/id'),
     __param(0, (0, routing_controllers_1.Param)('id')),

@@ -4,21 +4,48 @@ import Account from "../models/account";
 import Repository from "../models/Repository";
 import Transactions from "../models/transactions";
 import Users from "../models/users";
-import {v4 as uuid} from 'uuid';
+import { v4 as uuid } from 'uuid';
 import fs from 'fs';
 import util from 'util';
-import {deleteFile, uploadFile} from "../utils/s3";
+import { deleteFile, uploadFile } from "../utils/s3";
 
 @Service()
 @JsonController()
 export default class MarketRepository {
-    async savePreview(Itemid: any, userid: any, file:any) {
+
+    fettchOffsetLimit(page, count) {
+        let maxPages = Math.round(count / 10);
+
+        let offset = (10 * page);
+        let limit = offset + 10;
+        if (page < maxPages) {
+            if (limit > count) {
+                limit = count;
+            }
+        }
+        else {
+            offset = ((page - 1) * 10) + 10;
+            limit = count
+        }
+        return { offset: offset, limit: limit }
+    }
+
+    async fetchRepos(page: number) {
+        try {
+            let count = await Repository.count();
+            let params = this.fettchOffsetLimit(page, count);
+            const items = await Repository.findAll(params);
+            return items;
+        } catch (error) {
+            console.log(error)
+        }
+    }
+    async savePreview(Itemid: any, userid: any, file: any) {
         try {
             const item = await Repository.findByPk(Itemid);
-            if(item.userId === userid)
-            {
+            if (item.userId === userid) {
                 const key = await this.uploadS3(file, Itemid + '_preview');
-                await item.update({previewUrl:key});
+                await item.update({ previewUrl: key });
                 return true;
             }
             return false;
@@ -28,11 +55,10 @@ export default class MarketRepository {
         }
     }
 
-    async saveItemToRepo(Itemid: any, userid: any, file:any, fileid: string) {
+    async saveItemToRepo(Itemid: any, userid: any, file: any, fileid: string) {
         try {
             const item = await Repository.findByPk(Itemid);
-            if(item.userId === userid)
-            {
+            if (item.userId === userid) {
 
                 const key = await this.uploadS3(file, Itemid + '_' + fileid);
                 return key;
@@ -46,11 +72,10 @@ export default class MarketRepository {
 
     async buyItem(item: Repository, user: Users) {
         try {
-            const account = await Account.findOne({where:{userId:user.id}});
-            if(account.oxygen > item.cost)
-            {
+            const account = await Account.findOne({ where: { userId: user.id } });
+            if (account.oxygen > item.cost) {
                 const oxygen = account.oxygen - item.cost;
-                await account.update({oxygen});
+                await account.update({ oxygen });
                 await Transactions.create({
                     id: uuid(),
                     accountId: account.id,
@@ -59,11 +84,10 @@ export default class MarketRepository {
                 })
                 let purchasedItems = user.purchasedItems
                 purchasedItems.push(item.id);
-                const data = await (await Users.findByPk(user.id)).update({purchasedItems:purchasedItems});
+                const data = await (await Users.findByPk(user.id)).update({ purchasedItems: purchasedItems });
                 return data;
             }
-            else
-            {
+            else {
                 return null;
             }
         }
@@ -74,21 +98,21 @@ export default class MarketRepository {
     }
 
     fetchItemsFromUser(id: any) {
-        try {            
-            return Repository.findAll({where:{userId:id}});
+        try {
+            return Repository.findAll({ where: { userId: id } });
         } catch (error) {
             console.log(error);
             return null;
         }
     }
 
-    async uploadS3(file, itemId): Promise<string>{
+    async uploadS3(file, itemId): Promise<string> {
         // save file from upload
         // return file url
         let arrbuf = new ArrayBuffer(file.buffer.length);
         let view = new Uint8Array(arrbuf);
         for (let i = 0; i < file.buffer.length; i++) {
-          view[i] = file.buffer[i];
+            view[i] = file.buffer[i];
         }
         const fileName = `${itemId}`;
         let filePath = `./temp/${fileName}`;
@@ -99,9 +123,9 @@ export default class MarketRepository {
         fs.unlinkSync(filePath);
         return SendData.Key;
         //return `http://localhost:3000/marlet/download/${fileName}`;
-      }
+    }
 
-    async createItem(payload, file, user:Users){
+    async createItem(payload, file, user: Users) {
         try {
             const url = await this.uploadS3(file, payload.id);
             payload.fileUrl = url;
@@ -109,7 +133,7 @@ export default class MarketRepository {
             user.purchasedItems = user.purchasedItems ? user.purchasedItems : [];
             let pitems = user.purchasedItems;
             pitems.push(payload.id);
-            await user.update({purchasedItems:pitems});
+            await user.update({ purchasedItems: pitems });
             const result = await Repository.create(payload);
             return result;
         } catch (error) {
@@ -118,7 +142,7 @@ export default class MarketRepository {
         }
     }
 
-    async updateItem(payload){
+    async updateItem(payload) {
         try {
             return (await Repository.findByPk(payload.id)).update(payload);
         } catch (error) {
@@ -139,21 +163,19 @@ export default class MarketRepository {
     async deleteItem(id, user): Promise<any> {
         try {
             const item = await (await Repository.findByPk(id));
-            if(Transactions.findOne({where:{itemId:id}})){
-                return {message:"Item is in use"};
+            if (Transactions.findOne({ where: { itemId: id } })) {
+                return { message: "Item is in use" };
             }
-            if(item.userId === user.id)
-            {
+            if (item.userId === user.id) {
                 await deleteFile(item.manifestUrl);
                 await item.destroy();
-                return {messagge:"Item deleted"};
-            }else
-            {
-                return {message:"You are not authorized to delete this item"};
+                return { messagge: "Item deleted" };
+            } else {
+                return { message: "You are not authorized to delete this item" };
             }
         } catch (error) {
             console.log(error);
-            return {message:"Error deleting item"};
+            return { message: "Error deleting item" };
         }
     }
 }

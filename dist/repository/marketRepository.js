@@ -19,6 +19,32 @@ const uuid_1 = require("uuid");
 const fs_1 = __importDefault(require("fs"));
 const s3_1 = require("../utils/s3");
 let MarketRepository = class MarketRepository {
+    fettchOffsetLimit(page, count) {
+        let maxPages = Math.round(count / 10);
+        let offset = (10 * page);
+        let limit = offset + 10;
+        if (page < maxPages) {
+            if (limit > count) {
+                limit = count;
+            }
+        }
+        else {
+            offset = ((page - 1) * 10) + 10;
+            limit = count;
+        }
+        return { offset: offset, limit: limit };
+    }
+    async fetchRepos(page) {
+        try {
+            let count = await Repository_1.default.count();
+            let params = this.fettchOffsetLimit(page, count);
+            const items = await Repository_1.default.findAll(params);
+            return items;
+        }
+        catch (error) {
+            console.log(error);
+        }
+    }
     async savePreview(Itemid, userid, file) {
         try {
             const item = await Repository_1.default.findByPk(Itemid);

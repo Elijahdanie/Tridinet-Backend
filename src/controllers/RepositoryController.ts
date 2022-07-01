@@ -36,7 +36,18 @@ export default class RepositoryController {
       return res.status(500).json({success:false, message:"Internal server error"});
     }
     }
-  
+
+    @Get('/:page')
+    async fetchAlRepo(@Param('page') page:number, @Res() res:any){
+      try{
+        const payload = await this._marketRepository.fetchRepos(page);
+        return res.status(200).json({success:true, message:"Preview uploaded", data:payload});
+      }
+      catch(error){
+        console.log(error);
+        return res.status(500).json({success: false, message: "Unable to process"});
+      }
+    }
 
     @Get('/fetch/id')
     async DownloadItem(@Param('id') id:any, @Res() res: Response){
