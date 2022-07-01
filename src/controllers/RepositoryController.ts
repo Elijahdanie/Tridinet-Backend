@@ -21,7 +21,7 @@ export default class RepositoryController {
             return res.status(401).json({success:false, message:"Unauthorized"})
         }
         const assetId = payload.id;
-        const url = await this._marketRepository.saveItemToRepo(assetId, user.id, file, user.id);
+        const url = await this._marketRepository.saveItemToRepo(assetId, user.id, file);
         if(url == "")
         {
           return res.status(400).json({success:false, message:"No url", data:""});

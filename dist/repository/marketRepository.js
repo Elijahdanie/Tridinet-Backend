@@ -60,13 +60,10 @@ let MarketRepository = class MarketRepository {
             return false;
         }
     }
-    async saveItemToRepo(Itemid, userid, file, fileid) {
+    async saveItemToRepo(Itemid, userid, file) {
         try {
-            const item = await Repository_1.default.findByPk(Itemid);
-            if (item.userId === userid) {
-                const key = await this.uploadS3(file, Itemid + '_' + fileid);
-                return key;
-            }
+            const key = await this.uploadS3(file, Itemid + '_' + userid);
+            return key;
             return "";
         }
         catch (error) {
