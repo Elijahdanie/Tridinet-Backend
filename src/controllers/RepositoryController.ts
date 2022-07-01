@@ -49,7 +49,7 @@ export default class RepositoryController {
       }
     }
 
-    @Get('/fetch/id')
+    @Get('/fetch/:id')
     async DownloadItem(@Param('id') id:any, @Res() res: Response){
         try{
             res.setHeader('Content-Disposition', `filename=${id}.png`);
