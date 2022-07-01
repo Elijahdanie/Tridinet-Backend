@@ -23,14 +23,13 @@ let RepositoryController = class RepositoryController {
     constructor() {
         this._marketRepository = new marketRepository_1.default();
     }
-    async uploadPreview(file, user, payload, res) {
+    async createRepository(file, user, payload, res) {
         try {
             if (!user) {
                 return res.status(401).json({ success: false, message: "Unauthorized" });
             }
-            const repoId = payload.id;
-            const fileid = payload.itemId;
-            const url = await this._marketRepository.saveItemToRepo(repoId, user.id, file, fileid);
+            const assetId = payload.id;
+            const url = await this._marketRepository.saveItemToRepo(assetId, user.id, file, user.id);
             if (url == "") {
                 return res.status(400).json({ success: false, message: "No url", data: "" });
             }
@@ -78,7 +77,7 @@ __decorate([
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, Object, Object, Object]),
     __metadata("design:returntype", Promise)
-], RepositoryController.prototype, "uploadPreview", null);
+], RepositoryController.prototype, "createRepository", null);
 __decorate([
     (0, routing_controllers_1.Get)('/:page'),
     __param(0, (0, routing_controllers_1.Param)('page')),

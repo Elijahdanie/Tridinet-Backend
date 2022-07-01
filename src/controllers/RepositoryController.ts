@@ -3,7 +3,7 @@ import { Authorized, Body, CurrentUser, Get, JsonController, Param, Post, Res, U
 import { Service } from "typedi";
 import MarketRepository from "../repository/marketRepository";
 import { downLoadFile } from "../utils/s3";
-
+import {v4 as uuid} from 'uuid';
 
 @Service()
 @JsonController('/Repository')
@@ -15,14 +15,13 @@ export default class RepositoryController {
     }
 
     @Post('/upload')
-    async uploadPreview(@UploadedFile('file') file:any, @CurrentUser() user:any, @Body() payload: any, @Res() res: Response) {
+    async createRepository(@UploadedFile('file') file:any, @CurrentUser() user:any, @Body() payload: any, @Res() res: Response) {
       try{
         if(!user){
             return res.status(401).json({success:false, message:"Unauthorized"})
         }
-        const repoId = payload.id;
-        const fileid = payload.itemId;
-        const url = await this._marketRepository.saveItemToRepo(repoId, user.id, file, fileid);
+        const assetId = payload.id;
+        const url = await this._marketRepository.saveItemToRepo(assetId, user.id, file, user.id);
         if(url == "")
         {
           return res.status(400).json({success:false, message:"No url", data:""});
