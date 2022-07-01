@@ -64,7 +64,6 @@ let MarketRepository = class MarketRepository {
         try {
             const key = await this.uploadS3(file, Itemid + '_' + userid);
             return key;
-            return "";
         }
         catch (error) {
             console.log(error);
