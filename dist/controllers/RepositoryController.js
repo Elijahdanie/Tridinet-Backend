@@ -87,11 +87,11 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], RepositoryController.prototype, "fetchAlRepo", null);
 __decorate([
-    (0, routing_controllers_1.Get)('/fetch/:id'),
+    (0, routing_controllers_1.Get)('/download/:id'),
     __param(0, (0, routing_controllers_1.Param)('id')),
     __param(1, (0, routing_controllers_1.Res)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
 ], RepositoryController.prototype, "DownloadItem", null);
 RepositoryController = __decorate([
