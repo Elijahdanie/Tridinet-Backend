@@ -123,7 +123,7 @@ export default class MarketRepository {
     async createItem(payload, file, user: Users) {
         try {
             const url = await this.uploadS3(file, payload.id);
-            payload.fileUrl = url;
+            payload.manifestUrl = url;
             console.log(payload)
             user.purchasedItems = user.purchasedItems ? user.purchasedItems : [];
             let pitems = user.purchasedItems;
