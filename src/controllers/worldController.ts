@@ -5,6 +5,9 @@ import {
   JsonController,
   Get,
   CurrentUser,
+  Put,
+  Delete,
+  Param,
 } from "routing-controllers";
 import { Response } from "express";
 import { v4 as uuid } from "uuid";
@@ -54,6 +57,52 @@ export class WorldController {
         .json({ success: false, message: "Unable to process" });
     }
   }
+
+  @Put("/update")
+  async update(
+    @CurrentUser() user: any,
+    @Body() payload: any,
+    @Res() res: Response
+  ) {
+    try {
+      if(!user)
+      {
+        return res.status(401).json({success:false});
+      }
+      let {id, name, description, data, access, privateKey, type } = payload;
+      if (!name || !description || !data) {
+        return res.status(400).send("Missing required fields");
+      }
+      let url = `tr://${name}.world`;
+      const world = await this._worldRepository.update(id, {
+        name,
+        description,
+        data,
+        type: type ? type : "public",
+        access: access ? access : "public",
+        privateKey
+      });
+      return res.status(200).json({ success: true, data: world });
+    } catch (error) {
+      console.log(error);
+      return res
+        .status(500)
+        .json({ success: false, message: "Unable to process" });
+    }
+  }  
+
+  @Delete("/delete/:id")
+  async deleteWorld(@Param('id') id: any, @Res() res: Response) {
+    try {
+      const result = await this._worldRepository.delete(id);
+      return res.status(200).json({ success: true, data: result });
+    } catch (error) {
+      console.log(error);
+      return res
+        .status(500)
+        .json({ success: false, message: "Unable to process" });
+    }
+  }s
 
   @Post("/fetch")
   async getWorld(@Body() payload: any, @Res() res: Response) {

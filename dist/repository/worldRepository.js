@@ -12,6 +12,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const typedi_1 = require("typedi");
 const worlds_1 = __importDefault(require("../models/worlds"));
 let WorldRepository = class WorldRepository {
+    async delete(id) {
+        const result = await worlds_1.default.destroy({ where: { id: id } });
+        return result;
+    }
+    async update(id, payload) {
+        let data = await worlds_1.default.findByPk(id);
+        return await data.update(payload);
+    }
     async fetch(url) {
         return await worlds_1.default.findOne({ where: { url: url } });
     }

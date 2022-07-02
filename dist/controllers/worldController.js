@@ -54,6 +54,45 @@ let WorldController = class WorldController {
                 .json({ success: false, message: "Unable to process" });
         }
     }
+    async update(user, payload, res) {
+        try {
+            if (!user) {
+                return res.status(401).json({ success: false });
+            }
+            let { id, name, description, data, access, privateKey, type } = payload;
+            if (!name || !description || !data) {
+                return res.status(400).send("Missing required fields");
+            }
+            let url = `tr://${name}.world`;
+            const world = await this._worldRepository.update(id, {
+                name,
+                description,
+                data,
+                type: type ? type : "public",
+                access: access ? access : "public",
+                privateKey
+            });
+            return res.status(200).json({ success: true, data: world });
+        }
+        catch (error) {
+            console.log(error);
+            return res
+                .status(500)
+                .json({ success: false, message: "Unable to process" });
+        }
+    }
+    async deleteWorld(id, res) {
+        try {
+            const result = await this._worldRepository.delete(id);
+            return res.status(200).json({ success: true, data: result });
+        }
+        catch (error) {
+            console.log(error);
+            return res
+                .status(500)
+                .json({ success: false, message: "Unable to process" });
+        }
+    }
     async getWorld(payload, res) {
         try {
             const { url, password } = payload;
@@ -81,6 +120,23 @@ __decorate([
     __metadata("design:paramtypes", [Object, Object, Object]),
     __metadata("design:returntype", Promise)
 ], WorldController.prototype, "create", null);
+__decorate([
+    (0, routing_controllers_1.Put)("/update"),
+    __param(0, (0, routing_controllers_1.CurrentUser)()),
+    __param(1, (0, routing_controllers_1.Body)()),
+    __param(2, (0, routing_controllers_1.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object, Object]),
+    __metadata("design:returntype", Promise)
+], WorldController.prototype, "update", null);
+__decorate([
+    (0, routing_controllers_1.Delete)("/delete/:id"),
+    __param(0, (0, routing_controllers_1.Param)('id')),
+    __param(1, (0, routing_controllers_1.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], WorldController.prototype, "deleteWorld", null);
 __decorate([
     (0, routing_controllers_1.Post)("/fetch"),
     __param(0, (0, routing_controllers_1.Body)()),
