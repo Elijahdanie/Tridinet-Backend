@@ -119,7 +119,7 @@ export class WorldController {
           previewUri:"",
         }
       });
-      return res.status(200).json({success:true, total: payload.total, message:"Preview uploaded", data:payload.data});
+      return res.status(200).json({success:true, total: payload.total, message:"Preview uploaded", data:finalPayloads});
     }
     catch(error){
       console.log(error);
