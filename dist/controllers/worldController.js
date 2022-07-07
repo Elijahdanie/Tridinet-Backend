@@ -93,9 +93,17 @@ let WorldController = class WorldController {
                 .json({ success: false, message: "Unable to process" });
         }
     }
-    async fetchAlRepo(page, res) {
+    async fetchAllWorlds(page, res) {
         try {
             const payload = await this._worldRepository.fetchAllWorlds(page);
+            let finalPayloads = payload.data.map((world) => {
+                return {
+                    Name: world.name,
+                    Description: 'A world Description',
+                    url: world.url,
+                    previewUri: "",
+                };
+            });
             return res.status(200).json({ success: true, total: payload.total, message: "Preview uploaded", data: payload.data });
         }
         catch (error) {
@@ -155,7 +163,7 @@ __decorate([
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number, Object]),
     __metadata("design:returntype", Promise)
-], WorldController.prototype, "fetchAlRepo", null);
+], WorldController.prototype, "fetchAllWorlds", null);
 __decorate([
     (0, routing_controllers_1.Post)("/fetch"),
     __param(0, (0, routing_controllers_1.Body)()),

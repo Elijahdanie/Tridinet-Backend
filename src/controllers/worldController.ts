@@ -13,6 +13,7 @@ import { Response } from "express";
 import { v4 as uuid } from "uuid";
 import { Service } from "typedi";
 import WorldRepository from "../repository/worldRepository";
+import Worlds from "../models/worlds";
 
 @Service()
 @JsonController("/world")
@@ -107,9 +108,17 @@ export class WorldController {
 
   
   @Get('/:page')
-  async fetchAlRepo(@Param('page') page:number, @Res() res:any){
+  async fetchAllWorlds(@Param('page') page:number, @Res() res:any){
     try{
       const payload = await this._worldRepository.fetchAllWorlds(page);
+      let finalPayloads = payload.data.map((world:Worlds)=>{
+        return {
+          Name: world.name,
+          Description:'A world Description',
+          url:world.url,
+          previewUri:"",
+        }
+      });
       return res.status(200).json({success:true, total: payload.total, message:"Preview uploaded", data:payload.data});
     }
     catch(error){
