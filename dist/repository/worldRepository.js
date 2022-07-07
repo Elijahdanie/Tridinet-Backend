@@ -12,9 +12,39 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const typedi_1 = require("typedi");
 const worlds_1 = __importDefault(require("../models/worlds"));
 let WorldRepository = class WorldRepository {
-    async delete(id) {
-        const result = await worlds_1.default.destroy({ where: { id: id } });
-        return result;
+    fettchOffsetLimit(page, count) {
+        let maxPages = Math.round(count / 10);
+        let offset = (10 * page);
+        let limit = offset + 10;
+        if (page < maxPages) {
+            if (limit > count) {
+                limit = count;
+            }
+        }
+        else {
+            offset = ((page - 1) * 10) + 10;
+            limit = count;
+        }
+        return { offset: offset, limit: limit };
+    }
+    async fetchAllWorlds(page) {
+        try {
+            let count = await worlds_1.default.count();
+            let params = this.fettchOffsetLimit(page, count);
+            const items = await worlds_1.default.findAll(params);
+            return { data: items, total: count };
+        }
+        catch (error) {
+            console.log(error);
+        }
+    }
+    async delete(id, user) {
+        const result = await worlds_1.default.findByPk(id);
+        if (result.userId != user.id) {
+            return false;
+        }
+        result.destroy();
+        return true;
     }
     async update(id, payload) {
         let data = await worlds_1.default.findByPk(id);

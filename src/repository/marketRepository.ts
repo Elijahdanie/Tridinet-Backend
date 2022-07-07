@@ -35,7 +35,7 @@ export default class MarketRepository {
             let count = await Repository.count();
             let params = this.fettchOffsetLimit(page, count);
             const items = await Repository.findAll(params);
-            return items;
+            return {data:items, total:count};
         } catch (error) {
             console.log(error)
         }

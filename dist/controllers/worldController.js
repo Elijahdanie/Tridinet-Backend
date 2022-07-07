@@ -81,9 +81,9 @@ let WorldController = class WorldController {
                 .json({ success: false, message: "Unable to process" });
         }
     }
-    async deleteWorld(id, res) {
+    async deleteWorld(id, user, res) {
         try {
-            const result = await this._worldRepository.delete(id);
+            const result = await this._worldRepository.delete(id, user);
             return res.status(200).json({ success: true, data: result });
         }
         catch (error) {
@@ -91,6 +91,16 @@ let WorldController = class WorldController {
             return res
                 .status(500)
                 .json({ success: false, message: "Unable to process" });
+        }
+    }
+    async fetchAlRepo(page, res) {
+        try {
+            const payload = await this._worldRepository.fetchAllWorlds(page);
+            return res.status(200).json({ success: true, total: payload.total, message: "Preview uploaded", data: payload.data });
+        }
+        catch (error) {
+            console.log(error);
+            return res.status(500).json({ success: false, message: "Unable to process" });
         }
     }
     async getWorld(payload, res) {
@@ -132,11 +142,20 @@ __decorate([
 __decorate([
     (0, routing_controllers_1.Delete)("/delete/:id"),
     __param(0, (0, routing_controllers_1.Param)('id')),
-    __param(1, (0, routing_controllers_1.Res)()),
+    __param(1, (0, routing_controllers_1.CurrentUser)()),
+    __param(2, (0, routing_controllers_1.Res)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:paramtypes", [Object, Object, Object]),
     __metadata("design:returntype", Promise)
 ], WorldController.prototype, "deleteWorld", null);
+__decorate([
+    (0, routing_controllers_1.Get)('/:page'),
+    __param(0, (0, routing_controllers_1.Param)('page')),
+    __param(1, (0, routing_controllers_1.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, Object]),
+    __metadata("design:returntype", Promise)
+], WorldController.prototype, "fetchAlRepo", null);
 __decorate([
     (0, routing_controllers_1.Post)("/fetch"),
     __param(0, (0, routing_controllers_1.Body)()),

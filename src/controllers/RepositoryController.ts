@@ -40,7 +40,7 @@ export default class RepositoryController {
     async fetchAlRepo(@Param('page') page:number, @Res() res:any){
       try{
         const payload = await this._marketRepository.fetchRepos(page);
-        return res.status(200).json({success:true, message:"Preview uploaded", data:payload});
+        return res.status(200).json({success:true, total:payload.total, message:"Preview uploaded", data:payload.data});
       }
       catch(error){
         console.log(error);

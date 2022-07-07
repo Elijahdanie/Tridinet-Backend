@@ -92,9 +92,9 @@ export class WorldController {
   }  
 
   @Delete("/delete/:id")
-  async deleteWorld(@Param('id') id: any, @Res() res: Response) {
+  async deleteWorld(@Param('id') id: any, @CurrentUser() user:any, @Res() res: Response) {
     try {
-      const result = await this._worldRepository.delete(id);
+      const result = await this._worldRepository.delete(id, user);
       return res.status(200).json({ success: true, data: result });
     } catch (error) {
       console.log(error);
@@ -102,7 +102,21 @@ export class WorldController {
         .status(500)
         .json({ success: false, message: "Unable to process" });
     }
-  }s
+  }
+
+
+  
+  @Get('/:page')
+  async fetchAlRepo(@Param('page') page:number, @Res() res:any){
+    try{
+      const payload = await this._worldRepository.fetchAllWorlds(page);
+      return res.status(200).json({success:true, total: payload.total, message:"Preview uploaded", data:payload.data});
+    }
+    catch(error){
+      console.log(error);
+      return res.status(500).json({success: false, message: "Unable to process"});
+    }
+  }
 
   @Post("/fetch")
   async getWorld(@Body() payload: any, @Res() res: Response) {
