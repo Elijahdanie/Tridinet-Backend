@@ -14,6 +14,7 @@ import { v4 as uuid } from "uuid";
 import { Service } from "typedi";
 import WorldRepository from "../repository/worldRepository";
 import Worlds from "../models/worlds";
+import TridinetResolver from "../repository/engine/tridinetResolver";
 
 @Service()
 @JsonController("/world")
@@ -105,6 +106,20 @@ export class WorldController {
     }
   }
 
+
+  @Post('/fetchRepoWorld')
+  async fetchRepoWorld(@Body() payloads:any, @Res() res: Response) {
+    try {
+      const {url, id} = payloads;
+      const world = TridinetResolver.ConstructRepoWord(url, id);
+      return res.status(200).json({ success: true, data: world });
+    } catch (error) {
+      console.log(error);
+      return res
+        .status(500)
+        .json({ success: false, message: "Unable to process" });
+    }
+  }
 
   
   @Get('/:page')

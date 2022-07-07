@@ -1,5 +1,18 @@
+import fs from 'fs';
+
+
+const repoWorld = fs.readFileSync('./repoworld.world', 'utf-8');
 
 export default class TridinetResolver {
+
+    static ConstructRepoWord(url: any, id: any) {
+        if(url === 'tr://repository.world')
+        {
+            const worldParsed = repoWorld.replace('manifestid', id);
+            return worldParsed;
+        }
+        return "";
+    }
     static async resolve(data: string): Promise<Object> {
         let url = data.split('/');
         let domain = url[2];

@@ -20,6 +20,7 @@ const routing_controllers_1 = require("routing-controllers");
 const uuid_1 = require("uuid");
 const typedi_1 = require("typedi");
 const worldRepository_1 = __importDefault(require("../repository/worldRepository"));
+const tridinetResolver_1 = __importDefault(require("../repository/engine/tridinetResolver"));
 let WorldController = class WorldController {
     constructor(worldRepository) {
         this._worldRepository = worldRepository;
@@ -93,6 +94,19 @@ let WorldController = class WorldController {
                 .json({ success: false, message: "Unable to process" });
         }
     }
+    async fetchRepoWorld(payloads, res) {
+        try {
+            const { url, id } = payloads;
+            const world = tridinetResolver_1.default.ConstructRepoWord(url, id);
+            return res.status(200).json({ success: true, data: world });
+        }
+        catch (error) {
+            console.log(error);
+            return res
+                .status(500)
+                .json({ success: false, message: "Unable to process" });
+        }
+    }
     async fetchAllWorlds(page, res) {
         try {
             const payload = await this._worldRepository.fetchAllWorlds(page);
@@ -156,6 +170,14 @@ __decorate([
     __metadata("design:paramtypes", [Object, Object, Object]),
     __metadata("design:returntype", Promise)
 ], WorldController.prototype, "deleteWorld", null);
+__decorate([
+    (0, routing_controllers_1.Post)('/fetchRepoWorld'),
+    __param(0, (0, routing_controllers_1.Body)()),
+    __param(1, (0, routing_controllers_1.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], WorldController.prototype, "fetchRepoWorld", null);
 __decorate([
     (0, routing_controllers_1.Get)('/:page'),
     __param(0, (0, routing_controllers_1.Param)('page')),
