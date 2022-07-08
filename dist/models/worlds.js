@@ -28,8 +28,8 @@ __decorate([
     __metadata("design:type", String)
 ], Worlds.prototype, "name", void 0);
 __decorate([
-    (0, sequelize_typescript_1.Column)(sequelize_typescript_1.DataType.JSON),
-    __metadata("design:type", Object)
+    sequelize_typescript_1.Column,
+    __metadata("design:type", String)
 ], Worlds.prototype, "data", void 0);
 __decorate([
     sequelize_typescript_1.Column,

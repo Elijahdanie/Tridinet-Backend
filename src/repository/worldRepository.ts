@@ -1,5 +1,8 @@
 import { Service } from "typedi";
 import Worlds from "../models/worlds";
+import { uploadFile } from "../utils/s3";
+import fs from 'fs';
+import TridinetResolver from "./engine/tridinetResolver";
 
 @Service()
 export default class WorldRepository {
@@ -42,13 +45,35 @@ export default class WorldRepository {
     }
     async update(id, payload: any){
         let data = await Worlds.findByPk(id);
-        return await data.update(payload);
+        const result = await data.update(payload);
+        TridinetResolver.updateRecord(result.url, 'y');
     }
-    async fetch(url): Promise<Worlds> {
-        return await Worlds.findOne({ where: {url: url} });
+    async fetch(url, userid): Promise<Worlds> {
+        return await Worlds.findOne({ where: {url: url, userId:userid} });
     }
 
-    async create(world): Promise<Worlds> {
+    async uploadS3(file, itemId): Promise<string> {
+        // save file from upload
+        // return file url
+        let arrbuf = new ArrayBuffer(file.buffer.length);
+        let view = new Uint8Array(arrbuf);
+        for (let i = 0; i < file.buffer.length; i++) {
+            view[i] = file.buffer[i];
+        }
+        const fileName = `${itemId}`;
+        let filePath = `./temp/${fileName}`;
+        //const writeFile = util.promisify(fs.writeFileSync);
+        //const unlink = util.promisify(fs.unlinkSync);
+        await fs.writeFileSync(filePath, view, 'binary');
+        const SendData = await uploadFile(filePath, fileName);
+        fs.unlinkSync(filePath);
+        return SendData.Key;
+        //return `http://localhost:3000/marlet/download/${fileName}`;
+    }
+
+    async create(world, file): Promise<Worlds> {
+        const url = await this.uploadS3(file, world.id);
+        world.data = url;
         return await Worlds.create(world);
     }
 }

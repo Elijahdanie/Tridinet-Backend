@@ -21,17 +21,18 @@ const uuid_1 = require("uuid");
 const typedi_1 = require("typedi");
 const worldRepository_1 = __importDefault(require("../repository/worldRepository"));
 const tridinetResolver_1 = __importDefault(require("../repository/engine/tridinetResolver"));
+const s3_1 = require("../utils/s3");
 let WorldController = class WorldController {
     constructor(worldRepository) {
         this._worldRepository = worldRepository;
     }
-    async create(user, payload, res) {
+    async create(file, user, payload, res) {
         try {
             if (!user) {
                 return res.status(401).json({ success: false });
             }
-            let { name, description, data, access, privateKey, type } = payload;
-            if (!name || !description || !data) {
+            let { name, description, access, privateKey, type } = payload;
+            if (!name || !description) {
                 return res.status(400).send("Missing required fields");
             }
             let url = `tr://${name}.world`;
@@ -40,12 +41,11 @@ let WorldController = class WorldController {
                 name,
                 description,
                 userId: user.id,
-                data,
                 url,
                 type: type ? type : "public",
                 access: access ? access : "public",
                 privateKey
-            });
+            }, file);
             return res.status(200).json({ success: true, data: world });
         }
         catch (error) {
@@ -125,14 +125,40 @@ let WorldController = class WorldController {
             return res.status(500).json({ success: false, message: "Unable to process" });
         }
     }
-    async getWorld(payload, res) {
+    async fetchworldfile(payload, res) {
         try {
             const { url, password } = payload;
             if (!url) {
                 return res.status(400).send("Missing required fields");
             }
+            const data_r = await tridinetResolver_1.default.fetchWorldUri(url, password);
+            if (!data_r) {
+                return res.status(404).json({ success: false, message: "World not found" });
+            }
+            res.setHeader('Content-Disposition', `filename=${data_r}.png`);
+            res.setHeader('Content-Type', 'image/png');
+            return new Promise((resolve, reject) => {
+                const readable = (0, s3_1.downLoadFile)(data_r);
+                readable.pipe(res);
+                readable.on('end', () => resolve(res));
+                readable.on('error', (error) => reject(error));
+            });
+        }
+        catch (error) {
+            console.log(error);
+            return res
+                .status(500)
+                .json({ success: false, message: "Unable to process" });
+        }
+    }
+    async getWorld(user, payload, res) {
+        try {
+            const { url } = payload;
+            if (!url) {
+                return res.status(400).send("Missing required fields");
+            }
             //   const data_r = await TridinetResolver.resolve(url);
-            const worldPayloads = await this._worldRepository.fetch(url);
+            const worldPayloads = await this._worldRepository.fetch(url, user.id);
             return res.status(200).json({ success: true, data: worldPayloads });
         }
         catch (error) {
@@ -145,11 +171,12 @@ let WorldController = class WorldController {
 };
 __decorate([
     (0, routing_controllers_1.Post)("/create"),
-    __param(0, (0, routing_controllers_1.CurrentUser)()),
-    __param(1, (0, routing_controllers_1.Body)()),
-    __param(2, (0, routing_controllers_1.Res)()),
+    __param(0, (0, routing_controllers_1.UploadedFile)('file')),
+    __param(1, (0, routing_controllers_1.CurrentUser)()),
+    __param(2, (0, routing_controllers_1.Body)()),
+    __param(3, (0, routing_controllers_1.Res)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, Object, Object]),
+    __metadata("design:paramtypes", [Object, Object, Object, Object]),
     __metadata("design:returntype", Promise)
 ], WorldController.prototype, "create", null);
 __decorate([
@@ -187,11 +214,22 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], WorldController.prototype, "fetchAllWorlds", null);
 __decorate([
-    (0, routing_controllers_1.Post)("/fetch"),
+    (0, routing_controllers_1.Authorized)(),
+    (0, routing_controllers_1.Post)("/fetchworld"),
     __param(0, (0, routing_controllers_1.Body)()),
     __param(1, (0, routing_controllers_1.Res)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], WorldController.prototype, "fetchworldfile", null);
+__decorate([
+    (0, routing_controllers_1.Authorized)(),
+    (0, routing_controllers_1.Post)("/fetch"),
+    __param(0, (0, routing_controllers_1.CurrentUser)()),
+    __param(1, (0, routing_controllers_1.Body)()),
+    __param(2, (0, routing_controllers_1.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object, Object]),
     __metadata("design:returntype", Promise)
 ], WorldController.prototype, "getWorld", null);
 WorldController = __decorate([

@@ -14,8 +14,8 @@ export default class Worlds extends Model<Worlds> {
     @Column
     name: string;
 
-    @Column(DataType.JSON)
-    data: JSON;
+    @Column
+    data: string;
 
     @Column
     access: string;

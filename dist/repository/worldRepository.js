@@ -11,6 +11,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const typedi_1 = require("typedi");
 const worlds_1 = __importDefault(require("../models/worlds"));
+const s3_1 = require("../utils/s3");
+const fs_1 = __importDefault(require("fs"));
+const tridinetResolver_1 = __importDefault(require("./engine/tridinetResolver"));
 let WorldRepository = class WorldRepository {
     fettchOffsetLimit(page, count) {
         let maxPages = Math.round(count / 10);
@@ -48,12 +51,33 @@ let WorldRepository = class WorldRepository {
     }
     async update(id, payload) {
         let data = await worlds_1.default.findByPk(id);
-        return await data.update(payload);
+        const result = await data.update(payload);
+        tridinetResolver_1.default.updateRecord(result.url, 'y');
     }
-    async fetch(url) {
-        return await worlds_1.default.findOne({ where: { url: url } });
+    async fetch(url, userid) {
+        return await worlds_1.default.findOne({ where: { url: url, userId: userid } });
     }
-    async create(world) {
+    async uploadS3(file, itemId) {
+        // save file from upload
+        // return file url
+        let arrbuf = new ArrayBuffer(file.buffer.length);
+        let view = new Uint8Array(arrbuf);
+        for (let i = 0; i < file.buffer.length; i++) {
+            view[i] = file.buffer[i];
+        }
+        const fileName = `${itemId}`;
+        let filePath = `./temp/${fileName}`;
+        //const writeFile = util.promisify(fs.writeFileSync);
+        //const unlink = util.promisify(fs.unlinkSync);
+        await fs_1.default.writeFileSync(filePath, view, 'binary');
+        const SendData = await (0, s3_1.uploadFile)(filePath, fileName);
+        fs_1.default.unlinkSync(filePath);
+        return SendData.Key;
+        //return `http://localhost:3000/marlet/download/${fileName}`;
+    }
+    async create(world, file) {
+        const url = await this.uploadS3(file, world.id);
+        world.data = url;
         return await worlds_1.default.create(world);
     }
 };

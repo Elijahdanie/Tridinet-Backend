@@ -8,6 +8,8 @@ import {
   Put,
   Delete,
   Param,
+  UploadedFile,
+  Authorized,
 } from "routing-controllers";
 import { Response } from "express";
 import { v4 as uuid } from "uuid";
@@ -15,6 +17,7 @@ import { Service } from "typedi";
 import WorldRepository from "../repository/worldRepository";
 import Worlds from "../models/worlds";
 import TridinetResolver from "../repository/engine/tridinetResolver";
+import { downLoadFile } from "../utils/s3";
 
 @Service()
 @JsonController("/world")
@@ -25,7 +28,7 @@ export class WorldController {
   }
 
   @Post("/create")
-  async create(
+  async create(@UploadedFile('file') file:any,
     @CurrentUser() user: any,
     @Body() payload: any,
     @Res() res: Response
@@ -35,8 +38,8 @@ export class WorldController {
       {
         return res.status(401).json({success:false});
       }
-      let { name, description, data, access, privateKey, type } = payload;
-      if (!name || !description || !data) {
+      let { name, description, access, privateKey, type } = payload;
+      if (!name || !description) {
         return res.status(400).send("Missing required fields");
       }
       let url = `tr://${name}.world`;
@@ -45,12 +48,11 @@ export class WorldController {
         name,
         description,
         userId: user.id,
-        data,
         url,
         type: type ? type : "public",
         access: access ? access : "public",
         privateKey
-      });
+      }, file);
       return res.status(200).json({ success: true, data: world });
     } catch (error) {
       console.log(error);
@@ -142,15 +144,45 @@ export class WorldController {
     }
   }
 
-  @Post("/fetch")
-  async getWorld(@Body() payload: any, @Res() res: Response) {
+  @Authorized()
+  @Post("/fetchworld")
+  async fetchworldfile(@Body() payload: any, @Res() res: Response) {
     try {
       const { url, password } = payload;
       if (!url) {
         return res.status(400).send("Missing required fields");
       }
+      const data_r = await TridinetResolver.fetchWorldUri(url, password);
+      if(!data_r)
+      {
+        return res.status(404).json({success:false, message:"World not found"});
+      }
+      res.setHeader('Content-Disposition', `filename=${data_r}.png`);
+      res.setHeader('Content-Type', 'image/png');
+      return new Promise<Response>((resolve, reject) => {
+        const readable = downLoadFile(data_r);
+        readable.pipe(res);
+        readable.on('end', () => resolve(res));
+        readable.on('error', (error) => reject(error));
+      });
+    } catch (error) {
+      console.log(error);
+      return res
+        .status(500)
+        .json({ success: false, message: "Unable to process" });
+    }
+  }
+
+  @Authorized()
+  @Post("/fetch")
+  async getWorld(@CurrentUser() user:any, @Body() payload: any, @Res() res: Response) {
+    try {
+      const { url } = payload;
+      if (!url) {
+        return res.status(400).send("Missing required fields");
+      }
     //   const data_r = await TridinetResolver.resolve(url);
-      const worldPayloads = await this._worldRepository.fetch(url);
+      const worldPayloads = await this._worldRepository.fetch(url, user.id);
       return res.status(200).json({ success: true, data: worldPayloads });
     } catch (error) {
       console.log(error);
