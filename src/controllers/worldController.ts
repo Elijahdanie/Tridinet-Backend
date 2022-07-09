@@ -99,6 +99,10 @@ export class WorldController {
   @Delete("/delete/:id")
   async deleteWorld(@Param('id') id: any, @CurrentUser() user:any, @Res() res: Response) {
     try {
+      if(!user)
+      {
+        return res.status(401).json({success:false, message:"Unauthorized"});
+      }
       const result = await this._worldRepository.delete(id, user);
       return res.status(200).json({ success: true, data: result });
     } catch (error) {

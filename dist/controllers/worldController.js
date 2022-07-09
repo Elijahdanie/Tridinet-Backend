@@ -84,6 +84,9 @@ let WorldController = class WorldController {
     }
     async deleteWorld(id, user, res) {
         try {
+            if (!user) {
+                return res.status(401).json({ success: false, message: "Unauthorized" });
+            }
             const result = await this._worldRepository.delete(id, user);
             return res.status(200).json({ success: true, data: result });
         }
