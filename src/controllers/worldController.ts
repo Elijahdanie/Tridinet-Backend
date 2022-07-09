@@ -97,7 +97,7 @@ export class WorldController {
   }  
 
   @Delete("/delete/:id")
-  async deleteWorld(@Param('id') id: any, @CurrentUser() user:any, @Res() res: Response) {
+  async deleteWorld(@Param('id') id: string, @CurrentUser() user:any, @Res() res: Response) {
     try {
       if(!user)
       {

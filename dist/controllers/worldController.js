@@ -198,7 +198,7 @@ __decorate([
     __param(1, (0, routing_controllers_1.CurrentUser)()),
     __param(2, (0, routing_controllers_1.Res)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, Object, Object]),
+    __metadata("design:paramtypes", [String, Object, Object]),
     __metadata("design:returntype", Promise)
 ], WorldController.prototype, "deleteWorld", null);
 __decorate([
