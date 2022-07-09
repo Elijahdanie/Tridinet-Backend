@@ -20,7 +20,8 @@ class TridinetResolver {
             else {
                 const db_rec = await worlds_1.default.findOne({ where: { url: url } });
                 if (db_rec) {
-                    await this.updateWorldRecord(url, db_rec.data);
+                    const result = await this.updateWorldRecord(url, db_rec.data);
+                    return db_rec.data;
                 }
                 else {
                     return undefined;
