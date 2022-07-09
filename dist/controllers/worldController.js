@@ -55,7 +55,7 @@ let WorldController = class WorldController {
                 .json({ success: false, message: "Unable to process" });
         }
     }
-    async update(user, payload, res) {
+    async update(file, user, payload, res) {
         try {
             if (!user) {
                 return res.status(401).json({ success: false });
@@ -72,7 +72,7 @@ let WorldController = class WorldController {
                 type: type ? type : "public",
                 access: access ? access : "public",
                 privateKey
-            });
+            }, file);
             return res.status(200).json({ success: true, data: world });
         }
         catch (error) {
@@ -181,11 +181,12 @@ __decorate([
 ], WorldController.prototype, "create", null);
 __decorate([
     (0, routing_controllers_1.Put)("/update"),
-    __param(0, (0, routing_controllers_1.CurrentUser)()),
-    __param(1, (0, routing_controllers_1.Body)()),
-    __param(2, (0, routing_controllers_1.Res)()),
+    __param(0, (0, routing_controllers_1.UploadedFile)('file')),
+    __param(1, (0, routing_controllers_1.CurrentUser)()),
+    __param(2, (0, routing_controllers_1.Body)()),
+    __param(3, (0, routing_controllers_1.Res)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, Object, Object]),
+    __metadata("design:paramtypes", [Object, Object, Object, Object]),
     __metadata("design:returntype", Promise)
 ], WorldController.prototype, "update", null);
 __decorate([

@@ -17,7 +17,7 @@ import { Service } from "typedi";
 import WorldRepository from "../repository/worldRepository";
 import Worlds from "../models/worlds";
 import TridinetResolver from "../repository/engine/tridinetResolver";
-import { downLoadFile } from "../utils/s3";
+import { downLoadFile, uploadFile } from "../utils/s3";
 
 @Service()
 @JsonController("/world")
@@ -64,6 +64,7 @@ export class WorldController {
 
   @Put("/update")
   async update(
+    @UploadedFile('file') file:any,
     @CurrentUser() user: any,
     @Body() payload: any,
     @Res() res: Response
@@ -85,7 +86,7 @@ export class WorldController {
         type: type ? type : "public",
         access: access ? access : "public",
         privateKey
-      });
+      }, file);
       return res.status(200).json({ success: true, data: world });
     } catch (error) {
       console.log(error);

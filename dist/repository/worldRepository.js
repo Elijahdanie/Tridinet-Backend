@@ -49,8 +49,10 @@ let WorldRepository = class WorldRepository {
         result.destroy();
         return true;
     }
-    async update(id, payload) {
+    async update(id, payload, file) {
         let data = await worlds_1.default.findByPk(id);
+        const url = await this.uploadS3(file, data.id);
+        data.data = url;
         const result = await data.update(payload);
         tridinetResolver_1.default.updateRecord(result.url, 'y');
     }
