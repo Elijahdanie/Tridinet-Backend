@@ -78,6 +78,7 @@ let WorldRepository = class WorldRepository {
     async create(world, file) {
         const url = await this.uploadS3(file, world.id);
         world.data = url;
+        tridinetResolver_1.default.updateWorldRecord(world.url, world.data);
         return await worlds_1.default.create(world);
     }
 };

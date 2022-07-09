@@ -74,6 +74,7 @@ export default class WorldRepository {
     async create(world, file): Promise<Worlds> {
         const url = await this.uploadS3(file, world.id);
         world.data = url;
+        TridinetResolver.updateWorldRecord(world.url, world.data);
         return await Worlds.create(world);
     }
 }
