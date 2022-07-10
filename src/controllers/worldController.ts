@@ -149,7 +149,6 @@ export class WorldController {
     }
   }
 
-  @Authorized()
   @Post("/fetchworld")
   async fetchworldfile(@Body() payload: any, @Res() res: Response) {
     try {

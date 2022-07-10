@@ -218,7 +218,6 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], WorldController.prototype, "fetchAllWorlds", null);
 __decorate([
-    (0, routing_controllers_1.Authorized)(),
     (0, routing_controllers_1.Post)("/fetchworld"),
     __param(0, (0, routing_controllers_1.Body)()),
     __param(1, (0, routing_controllers_1.Res)()),
