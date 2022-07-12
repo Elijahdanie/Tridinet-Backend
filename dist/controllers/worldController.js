@@ -60,11 +60,10 @@ let WorldController = class WorldController {
             if (!user) {
                 return res.status(401).json({ success: false });
             }
-            let { id, name, description, data, access, privateKey, type } = payload;
-            if (!name || !description || !data) {
+            let { id, description, data, access, privateKey, type } = payload;
+            if (!description || !data) {
                 return res.status(400).send("Missing required fields");
             }
-            let url = `tr://${name}.world`;
             const world = await this._worldRepository.update(id, {
                 description,
                 data,
