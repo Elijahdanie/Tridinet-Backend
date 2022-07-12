@@ -75,12 +75,8 @@ export class WorldController {
         return res.status(401).json({success:false});
       }
       let {id, description, access, privateKey, type } = payload;
-      if (!description ) {
-        return res.status(400).send("Missing required fields");
-      }
       const world = await this._worldRepository.update(id, {
         description,
-        data,
         type: type ? type : "public",
         access: access ? access : "public",
         privateKey
