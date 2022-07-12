@@ -60,6 +60,7 @@ let WorldController = class WorldController {
             if (!user) {
                 return res.status(401).json({ success: false });
             }
+            console.log(payload);
             let { id, description, access, privateKey, type } = payload;
             const world = await this._worldRepository.update(id, {
                 description,
