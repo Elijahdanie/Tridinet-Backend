@@ -44,6 +44,7 @@ export default class WorldRepository {
         return true;
     }
     async update(id, payload: any, file:any){
+        console.log(id);
         let data = await Worlds.findByPk(id);
         const url = await this.uploadS3(file, data.id);
         data.data = url;
