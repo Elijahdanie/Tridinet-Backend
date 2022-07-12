@@ -66,7 +66,6 @@ let WorldController = class WorldController {
             }
             let url = `tr://${name}.world`;
             const world = await this._worldRepository.update(id, {
-                name,
                 description,
                 data,
                 type: type ? type : "public",
