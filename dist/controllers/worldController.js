@@ -178,7 +178,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], WorldController.prototype, "create", null);
 __decorate([
-    (0, routing_controllers_1.Put)("/update"),
+    (0, routing_controllers_1.Post)("/update"),
     __param(0, (0, routing_controllers_1.UploadedFile)('file')),
     __param(1, (0, routing_controllers_1.CurrentUser)()),
     __param(2, (0, routing_controllers_1.Body)()),

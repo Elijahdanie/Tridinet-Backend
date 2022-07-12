@@ -62,7 +62,7 @@ export class WorldController {
     }
   }
 
-  @Put("/update")
+  @Post("/update")
   async update(
     @UploadedFile('file') file:any,
     @CurrentUser() user: any,
